@@ -1,0 +1,23 @@
+
+http://localhost:8080/api/pdf/create
+{
+    "fileName":"demo.pdf",
+    "filePath":"D:\\java_app\\pdf_demo\\demo2.pdf"
+}
+
+http://localhost:8080/api/pdf/read
+
+{
+    "fileName":"demo.pdf",
+    "filePath":"D:\\java_app\\pdf_demo\\sample.pdf"
+}
+
+
+http://localhost:8080/api/pdf/edit
+{
+    "fileName":"demo.pdf",
+    "filePath":"D:\\java_app\\pdf_demo\\sample.pdf",
+    "newFilePathToStore":"D:\\java_app\\pdf_demo\\new_file_path.pdf",
+    "textToAddInFile":"new text to added ..............."
+}
+
