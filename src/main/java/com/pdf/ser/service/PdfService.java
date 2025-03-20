@@ -2,7 +2,7 @@ package com.pdf.ser.service;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
-import com.itextpdf.text.pdf.parser.PdfTextExtractor;
+import com.itextpdf.text.pdf.parser.*;
 import com.pdf.ser.model.PDFDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,6 +106,14 @@ public class PdfService {
     public String modifyPDF(PDFDto pdfDto) {
         PdfReader reader = null;
         PdfStamper stamper = null;
+
+        try {
+            readCoordinates(pdfDto.getFilePath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
         try {
             File file = new File(pdfDto.getFilePath());
             if (!file.exists()) {
@@ -173,5 +181,49 @@ public class PdfService {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void readCoordinates(String inputFilePath) throws IOException {
+        String filePath = inputFilePath;
+        try {
+            PdfReader reader = new PdfReader(filePath);
+            PdfReaderContentParser parser = new PdfReaderContentParser(reader);
+
+            // Extract text and its position using an anonymous RenderListener
+            for (int i = 1; i <= reader.getNumberOfPages(); i++) {
+                System.out.println("\nPage " + i + ":\n");
+
+                parser.processContent(i, new RenderListener() {
+
+                    @Override
+                    public void beginTextBlock() {
+                        System.out.println("---- Beginning of text block ----");
+                    }
+
+                    @Override
+                    public void renderText(TextRenderInfo renderInfo) {
+                        String text = renderInfo.getText(); // Extract the text
+                        Vector start = renderInfo.getBaseline().getStartPoint(); // Get position
+                        float x = start.get(Vector.I1); // X-coordinate
+                        float y = start.get(Vector.I2); // Y-coordinate
+                        System.out.printf("Text: '%s' at x = %.2f, y = %.2f%n", text, x, y);
+                    }
+
+                    @Override
+                    public void renderImage(com.itextpdf.text.pdf.parser.ImageRenderInfo renderInfo) {
+                        System.out.println("Image detected on the page.");
+                    }
+
+                    @Override
+                    public void endTextBlock() {
+                        System.out.println("---- End of text block ----");
+                    }
+                });
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
