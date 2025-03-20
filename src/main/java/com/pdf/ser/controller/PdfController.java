@@ -35,7 +35,8 @@ public class PdfController {
 
     @PostMapping("/modifyPdf")
     public String modifyPdf(@RequestBody PDFDto pdfDto) throws DocumentException, IOException {
-        return pdfService.modifyPDF(pdfDto);
+         pdfService.createPDF();
+         return "";
     }
 
 
