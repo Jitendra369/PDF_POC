@@ -21,3 +21,19 @@ http://localhost:8080/api/pdf/edit
     "textToAddInFile":"new text to added ..............."
 }
 
+
+http://localhost:8080/api/pdf/modifyPdf
+{
+    "fileName":"demo.pdf",
+    "filePath":"D:\\java_app\\pdf_demo\\demo_pdf.pdf",
+    "newFilePathToStore":"D:\\java_app\\pdf_demo\\new_file_path_modify.pdf",
+    "textToAddInFile":"new text to added ...............",
+    "userInfoDto":{
+        "name":"jitendra kadu",
+        "address":"ganesh colony , chandur bazar",
+        "pin":"444714",
+        "location":"mumbai",
+        "date":"25-12-2025",
+        "signature":"sign"
+    }
+}
