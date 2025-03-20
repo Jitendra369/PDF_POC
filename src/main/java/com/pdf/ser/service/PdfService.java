@@ -129,7 +129,7 @@ public class PdfService {
                 // Example positions - Adjust coordinates according to your PDF structure
                 if (pageText.contains("Name")) {
                     canvas.beginText();
-                    canvas.setTextMatrix(250, 750); // Position near "Name:"
+                    canvas.setTextMatrix(50, 560); // Position near "Name:"
                     canvas.showText(pdfDto.getUserInfoDto().getName());
                     canvas.endText();
                 }
@@ -148,6 +148,13 @@ public class PdfService {
                 if (pageText.contains("Location")) {
                     canvas.beginText();
                     canvas.setTextMatrix(150, 690); // Position near "Location:"
+                    canvas.showText(pdfDto.getUserInfoDto().getLocation());
+                    canvas.endText();
+                }
+
+                if (pageText.contains("Function")) {
+                    canvas.beginText();
+                    canvas.setTextMatrix(55, 545); // Position near "Function:"
                     canvas.showText(pdfDto.getUserInfoDto().getLocation());
                     canvas.endText();
                 }
