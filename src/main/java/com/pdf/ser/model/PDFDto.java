@@ -14,4 +14,5 @@ public class PDFDto {
     private String newFilePathToStore;
     private String textToAddInFile;
     private UserInfoDto userInfoDto;
+    private String signature;
 }

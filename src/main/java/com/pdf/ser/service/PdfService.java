@@ -2,6 +2,7 @@ package com.pdf.ser.service;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
+import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.parser.*;
 import com.pdf.ser.model.PDFDto;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +17,69 @@ import java.io.*;
 public class PdfService {
 
     public static final int FONT_GLOBAL_SIZE = 8;
-    public void createPdf(PDFDto pdfDto) {
+    public ByteArrayInputStream createPdf(PDFDto pdfDto) {
+        ByteArrayOutputStream boas = new ByteArrayOutputStream();
         Document document = new Document();
         try {
-            PdfWriter.getInstance(document, new FileOutputStream(pdfDto.getFilePath()));
+//            PdfWriter.getInstance(document, new FileOutputStream(pdfDto.getFilePath()));
+            PdfWriter.getInstance(document, boas);
             document.open();
-            document.add(new Paragraph(" hell0, this is sample pdf data"));
+            addTables(document, pdfDto);
             document.close();
-            System.out.println("PDF file created successfully");
+            return new ByteArrayInputStream(boas.toByteArray());
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    private void addTables(Document document, PDFDto pdfDto) throws DocumentException {
+
+        addSectionHeading(document, "CERTIFICATION OF COMPLICATION");
+
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f); // spacing after heading
+        table.setSpacingAfter(10f);  // spacing before next section (if any)
+
+        // 1st row
+        table.addCell(createInvisibleCell("Name : Jitendra Kadu"));
+        table.addCell(createInvisibleCell("Signature"));
+
+        // 2nd row
+        table.addCell(createInvisibleCell("Function : Captain"));
+
+        // Signature Image in 4th cell
+        Image image = checkImage(pdfDto.getSignature());
+        image.scaleAbsolute(80f, 40f); // scale image to fit nicely in cell
+        PdfPCell imageCell = new PdfPCell(image, false);
+        imageCell.setBorder(PdfPCell.NO_BORDER);
+        imageCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        imageCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        table.addCell(imageCell);
+
+        // Add table to document
+        document.add(table);
+    }
+
+    private Image checkImage(String imageSign) {
+        Image image = null;
+        String signature = imageSign.split(",")[1];
+        byte[] decode = Base64.decode(signature);
+        try {
+            return Image.getInstance(decode);
+        } catch (BadElementException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private PdfPCell createInvisibleCell(String text) {
+        PdfPCell cell = new PdfPCell(new Paragraph(text));
+        cell.setBorder(PdfPCell.ALIGN_LEFT); // Make the cell invisible
+        cell.setPadding(10f); // Add padding inside the cell
+        return cell;
     }
 
     public String readPdfFile(PDFDto pdfDto) throws IOException, DocumentException {
@@ -49,6 +102,20 @@ public class PdfService {
         }
         pdfReader.close();
         return sb.toString();
+    }
+
+    private void addSectionHeading(Document document, String headingText) throws DocumentException {
+        PdfPTable headingTable = new PdfPTable(1);
+        headingTable.setWidthPercentage(100);
+
+        PdfPCell headingCell = new PdfPCell(new Paragraph(headingText));
+        headingCell.setBackgroundColor(BaseColor.LIGHT_GRAY); // Grey background
+        headingCell.setPadding(5f); // Add padding
+        headingCell.setBorder(PdfPCell.NO_BORDER); // Optional: remove border for clean look
+        headingCell.setHorizontalAlignment(Element.ALIGN_LEFT); // Align text
+        headingTable.addCell(headingCell);
+
+        document.add(headingTable);
     }
 
     public String readAndAddTextToPDF(String inputFilePath, String outputFilePath, String textToAdd) {
