@@ -35,31 +35,98 @@ public class PdfService {
 
     private void addTables(Document document, PDFDto pdfDto) throws DocumentException {
 
-        addSectionHeading(document, "CERTIFICATION OF COMPLICATION");
+        // ➤ CLIENT ADDRESS DETAILS
+        addSectionHeading(document, "CLIENT ADDRESS DETAILS");
 
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100);
-        table.setSpacingBefore(10f); // spacing after heading
-        table.setSpacingAfter(10f);  // spacing before next section (if any)
-
-        // 1st row
+        PdfPTable table = createTable(2);
         table.addCell(createInvisibleCell("Name : Jitendra Kadu"));
         table.addCell(createInvisibleCell("Signature"));
-
-        // 2nd row
         table.addCell(createInvisibleCell("Function : Captain"));
 
-        // Signature Image in 4th cell
-        Image image = checkImage(pdfDto.getSignature());
-        image.scaleAbsolute(80f, 40f); // scale image to fit nicely in cell
+        Image signatureImage = checkImage(pdfDto.getSignature());
+        signatureImage.scaleAbsolute(80f, 40f);
+        table.addCell(getImagePdfCell(signatureImage));
+
+        document.add(table);
+
+        // ➤ CERTIFICATION OF COMPLICATION
+        addSectionHeading(document, "CERTIFICATION OF COMPLICATION");
+        document.add(new Paragraph("SAM REQUEST NUMBER"));
+
+        PdfPTable table1 = createTable(3);
+        table1.addCell(createInvisibleCell("Document Pages : Nb of pages"));
+        table1.addCell(createInvisibleCell("Signature Pages : Nb of Signature"));
+        table1.addCell(createInvisibleCell("Envelope Originator: Bureau Veritas Marine & Offshore"));
+        table1.addCell(createInvisibleCell("Certificate Pages : 1"));
+        table1.addCell(createInvisibleCell(""));
+        table1.addCell(createInvisibleCell(""));
+        document.add(table1);
+
+        Paragraph elements = new Paragraph("Time Zone : (UTC + 01:00 Brussel , Cophenhagen , Madrid, Paris )");
+        elements.setSpacingAfter(10f);
+        document.add(elements);
+
+        // ➤ RECORD TRACKING
+        addSectionHeading(document, "RECORD TRACKING");
+
+        PdfPTable table2 = createTable(3);
+        table2.addCell(createInvisibleCell("Sent : date of the sending e-mail to client"));
+
+        // Wrap inner table in a cell
+        PdfPCell nestedCell = new PdfPCell(createInnerSignatureTable(pdfDto.getSignature()));
+        nestedCell.setBorder(PdfPCell.NO_BORDER);
+        nestedCell.setPadding(5f);
+        table2.addCell(nestedCell);
+
+        table2.addCell(createInvisibleCell("Location: BV M&O Application"));
+        table2.addCell(createInvisibleCell(""));  // Empty row
+        table2.addCell(createInvisibleCell("BV E-mail ID : BV Signatory e-mail ID"));
+        table2.addCell(createInvisibleCell(""));  // Empty row
+        document.add(table2);
+
+        addSectionHeading(document, "SIGNER EVENT 1");
+        PdfPTable signerEventTableOne = createTable(3);
+        signerEventTableOne.addCell(createInvisibleCell("Name : BV Signature "));
+        signerEventTableOne.addCell(createInvisibleCell("Signature Pages : Nb of Signature"));
+        signerEventTableOne.addCell(createInvisibleCell("Envelope Originator: Bureau Veritas Marine & Offshore"));
+        signerEventTableOne.addCell(createInvisibleCell("Certificate Pages : 1"));
+        signerEventTableOne.addCell(createInvisibleCell(""));
+        signerEventTableOne.addCell(createInvisibleCell(""));
+        document.add(table1);
+    }
+
+    private PdfPTable createInnerSignatureTable(String signature){
+        // Nested 2-column table (Name + Signature)
+        PdfPTable innerTable = new PdfPTable(2);
+        innerTable.setWidthPercentage(100);
+        innerTable.addCell(createInvisibleCell("Name : BV Signature"));
+
+        Image innerImage = checkImage(signature);
+        innerImage.scaleAbsolute(80f, 40f);
+        PdfPCell imgCell = new PdfPCell(innerImage, false);
+        imgCell.setBorder(PdfPCell.NO_BORDER);
+        imgCell.setPadding(5f);
+        imgCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        imgCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        innerTable.addCell(imgCell);
+        return innerTable;
+    }
+
+
+    private PdfPCell getImagePdfCell(Image image){
         PdfPCell imageCell = new PdfPCell(image, false);
         imageCell.setBorder(PdfPCell.NO_BORDER);
         imageCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         imageCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        table.addCell(imageCell);
+        return imageCell;
+    }
 
-        // Add table to document
-        document.add(table);
+    private PdfPTable createTable(int numberOfColumns){
+        PdfPTable table = new PdfPTable(numberOfColumns);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f); // spacing after heading
+        table.setSpacingAfter(10f);
+        return table;
     }
 
     private Image checkImage(String imageSign) {
@@ -81,6 +148,7 @@ public class PdfService {
         cell.setPadding(10f); // Add padding inside the cell
         return cell;
     }
+
 
     public String readPdfFile(PDFDto pdfDto) throws IOException, DocumentException {
         File file = new File(pdfDto.getFilePath());
@@ -108,15 +176,22 @@ public class PdfService {
         PdfPTable headingTable = new PdfPTable(1);
         headingTable.setWidthPercentage(100);
 
-        PdfPCell headingCell = new PdfPCell(new Paragraph(headingText));
-        headingCell.setBackgroundColor(BaseColor.LIGHT_GRAY); // Grey background
-        headingCell.setPadding(5f); // Add padding
-        headingCell.setBorder(PdfPCell.NO_BORDER); // Optional: remove border for clean look
-        headingCell.setHorizontalAlignment(Element.ALIGN_LEFT); // Align text
-        headingTable.addCell(headingCell);
+        // Define bold font
+        Font headingFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.BLACK);
 
+        // Apply font to the paragraph
+        Paragraph headingParagraph = new Paragraph(headingText, headingFont);
+
+        PdfPCell headingCell = new PdfPCell(headingParagraph);
+        headingCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        headingCell.setPadding(5f);
+        headingCell.setBorder(PdfPCell.NO_BORDER);
+        headingCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+        headingTable.addCell(headingCell);
         document.add(headingTable);
     }
+
 
     public String readAndAddTextToPDF(String inputFilePath, String outputFilePath, String textToAdd) {
         PdfReader reader = null;
