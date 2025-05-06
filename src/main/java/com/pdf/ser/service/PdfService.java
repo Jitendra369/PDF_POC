@@ -5,6 +5,7 @@ import com.itextpdf.text.pdf.*;
 import com.itextpdf.text.pdf.codec.Base64;
 import com.itextpdf.text.pdf.parser.*;
 import com.pdf.ser.model.PDFDto;
+import com.pdf.ser.util.FooterPageEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,10 @@ public class PdfService {
         Document document = new Document();
         try {
 //            PdfWriter.getInstance(document, new FileOutputStream(pdfDto.getFilePath()));
-            PdfWriter.getInstance(document, boas);
+            PdfWriter writer = PdfWriter.getInstance(document, boas);
             document.open();
             addTables(document, pdfDto);
+            writer.setPageEvent(new FooterPageEvent());
             document.close();
             return new ByteArrayInputStream(boas.toByteArray());
         } catch (Exception e) {
